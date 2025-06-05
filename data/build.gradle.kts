@@ -49,7 +49,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.nutrisport.data"
+    namespace = "com.goiaba.data"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

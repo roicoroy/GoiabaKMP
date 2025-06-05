@@ -1,43 +1,10 @@
 package com.goiaba.data.networking
 
-import com.goiaba.data.util.NetworkError
-import com.goiaba.shared.util.RequestState
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.util.network.UnresolvedAddressException
-import kotlinx.serialization.SerializationException
-
 import io.ktor.client.*
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 
-import kotlinx.coroutines.runBlocking
-
-class InsultCensorClient(
-    private val httpClient: HttpClient
-) {
-
-    suspend fun httppp(){
-        val client = HttpClient(CIO) {
-            install(Auth) {
-                basic {
-                    credentials {
-                        BasicAuthCredentials(username = "jetbrains", password = "foobar")
-                    }
-                    realm = "Access to the '/' path"
-                }
-            }
-        }
-        val response: HttpResponse = client.get("http://0.0.0.0:8080/")
-        println(response.bodyAsText())
-        client.close()
-    }
-
+class InsultCensorClient() {
 
 //    suspend fun getPostsÏ() {
 //        val response = try {
