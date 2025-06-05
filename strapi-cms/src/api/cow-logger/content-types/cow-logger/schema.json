@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cow_loggers",
+  "info": {
+    "singularName": "cow-logger",
+    "pluralName": "cow-loggers",
+    "displayName": "cow-logger",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "cowName": {
+      "type": "string"
+    },
+    "date": {
+      "type": "date"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  }
+}

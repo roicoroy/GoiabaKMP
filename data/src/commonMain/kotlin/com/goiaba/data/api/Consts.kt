@@ -1,0 +1,4 @@
+package com.goiaba.data.api
+
+var headerToken = "Bearer 754t!si@glcE2qmOFEcN"
+var strapiAccessToken = "5311b5b7fb4b19b98ad66758d149a63ba82f5bf56310cf2e355347ecc1d0583560380e2dfbc2d3941c463c7242418ed3c0b4371211f450b24a462deae6bc3b54efd79af7a321485368b895a921f1acc4e883c22d966ca185a3d0ecb68bc5bc07bfa73dd2b3b0d57d7ac224ffa83208bb79daf270ab0238076d4f84b14f37170c"

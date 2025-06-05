@@ -1,0 +1,39 @@
+{
+  "name": "strapi-4-cms",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A Strapi application",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "deploy": "strapi deploy",
+    "server": "concurrently \"npm run develop\" \"ngrok http 1337\""
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "4.25.22",
+    "@strapi/plugin-i18n": "4.25.22",
+    "@strapi/plugin-users-permissions": "4.25.22",
+    "@strapi/provider-upload-cloudinary": "^5.13.0",
+    "@strapi/strapi": "4.25.22",
+    "concurrently": "^9.1.2",
+    "pg": "8.8.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "5.3.4",
+    "strapi-stripe": "/Users/ricardobento/LOCAL/KOTLIN-MULTI/GOIABA-FULLSTACK/GoiabaKMP/strapi-cms/src/plugins/strapi-stripe",
+    "styled-components": "5.3.3"
+  },
+  "author": {
+    "name": "A Strapi developer"
+  },
+  "strapi": {
+    "uuid": "8ccd6825-ed4c-4d8e-a9a8-9a10bb546fa4"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=22.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
+}
