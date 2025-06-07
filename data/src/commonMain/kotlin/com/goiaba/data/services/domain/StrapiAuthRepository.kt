@@ -5,6 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface StrapiAuthRepository {
     fun getCurrentUserId(): String?
-
     fun readCustomerFlow(): Flow<RequestState<String>>
 }

@@ -2,15 +2,15 @@ package com.goiaba.feature
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.goiaba.data.services.domain.StrapiApiRepository
 import com.goiaba.data.services.domain.StrapiAuthRepository
+import com.goiaba.data.services.domain.StrapiPostRepository
 import com.goiaba.shared.util.RequestState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 
 class HomeGraphViewModel(
     private val strapiAuthRep: StrapiAuthRepository,
-    private val strapiApiRepository: StrapiApiRepository,
+    private val strapiApiRepository: StrapiPostRepository,
 ) : ViewModel() {
 
     var text: String = "This is home Fragment"

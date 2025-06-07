@@ -50,6 +50,8 @@ kotlin {
 
             implementation(libs.kotlinx.serialization)
 
+            implementation(libs.bundles.ktor)
+
             implementation(project(path = ":shared"))
         }
     }
