@@ -54,55 +54,127 @@ fun HomeGraphScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CircularProgressIndicator()
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Loading posts from Strapi...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     },
                     onSuccess = { postsResponse ->
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(postsResponse.data) { post ->
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable {
-                                            navigateToDetails(post.id.toString())
-                                        },
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                ) {
-                                    Column(
+                        if (postsResponse.data.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                InfoCard(
+                                    image = Resources.Image.Cat,
+                                    title = "No Posts Found",
+                                    subtitle = "There are no posts available at the moment."
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(postsResponse.data) { post ->
+                                    Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(16.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable {
+                                                // Pass the post ID as string to navigation
+                                                navigateToDetails(post.id.toString())
+                                            },
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                     ) {
-                                        Text(
-                                            text = post.attributes.title,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "ID: ${post.id}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = "Created: ${post.attributes.createdAt}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.Top
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier.weight(1f)
+                                                ) {
+                                                    Text(
+                                                        text = post.attributes.title,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    Text(
+                                                        text = "ID: ${post.id}",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                    Text(
+                                                        text = "Created: ${post.attributes.createdAt}",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                                
+                                                // Visual indicator for clickable item
+                                                Surface(
+                                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                                    shape = RoundedCornerShape(20.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "→",
+                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
+                                }
+                                
+                                // Add some bottom padding for the last item
+                                item {
+                                    Spacer(modifier = Modifier.height(16.dp))
                                 }
                             }
                         }
                     },
                     onError = { message ->
-                        InfoCard(
-                            image = Resources.Image.Cat,
-                            title = "Oops!",
-                            subtitle = message
-                        )
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            InfoCard(
+                                image = Resources.Image.Cat,
+                                title = "Failed to Load Posts",
+                                subtitle = message
+                            )
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            Button(
+                                onClick = { 
+                                    // Trigger a refresh by recreating the ViewModel
+                                    // This will restart the data flow
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text("🔄 Retry")
+                            }
+                        }
                     }
                 )
             }
