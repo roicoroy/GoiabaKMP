@@ -26,9 +26,13 @@ kotlin {
         }
     }
 
-    val ktor_version = "2.2.3"
-
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.ktor.android.client)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.darwin.client)
+        }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -40,6 +44,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
 
             implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.serialization.kotlinx.json)
 
             implementation(libs.kotlinx.serialization)
 
