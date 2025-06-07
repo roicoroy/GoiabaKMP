@@ -3,12 +3,27 @@ package com.goiaba.data.services
 import com.goiaba.data.models.PostsResponse
 import com.goiaba.data.networking.ApiClient
 import com.goiaba.data.networking.posts
-import com.goiaba.data.util.NetworkError
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.coroutines.delay
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
+
+@Serializable
+data class SinglePostResponse(
+    val data: PostsResponse.Data
+)
+
+@Serializable
+data class CreatePostRequest(
+    val data: CreatePostData
+)
+
+@Serializable
+data class CreatePostData(
+    val title: String
+)
 
 class StrapiApiService {
     
@@ -45,30 +60,8 @@ class StrapiApiService {
             
             when (response.status) {
                 HttpStatusCode.OK -> {
-                    // Strapi returns single item in different format
-                    val postData = response.body<Map<String, Any>>()
-                    val data = postData["data"] as? Map<String, Any>
-                    
-                    if (data != null) {
-                        val attributes = data["attributes"] as? Map<String, Any>
-                        val postId = (data["id"] as? Number)?.toInt() ?: 0
-                        
-                        if (attributes != null) {
-                            val post = PostsResponse.Data(
-                                id = postId,
-                                attributes = PostsResponse.Data.Attributes(
-                                    title = attributes["title"] as? String ?: "",
-                                    createdAt = attributes["createdAt"] as? String ?: "",
-                                    updatedAt = attributes["updatedAt"] as? String ?: ""
-                                )
-                            )
-                            Result.success(post)
-                        } else {
-                            Result.failure(Exception("Invalid post data structure"))
-                        }
-                    } else {
-                        Result.failure(Exception("Post not found"))
-                    }
+                    val singlePostResponse = response.body<SinglePostResponse>()
+                    Result.success(singlePostResponse.data)
                 }
                 HttpStatusCode.NotFound -> {
                     Result.failure(Exception("Post with ID $id not found"))
@@ -87,10 +80,8 @@ class StrapiApiService {
     
     suspend fun createPost(title: String): Result<PostsResponse.Data> {
         return try {
-            val requestBody = mapOf(
-                "data" to mapOf(
-                    "title" to title
-                )
+            val requestBody = CreatePostRequest(
+                data = CreatePostData(title = title)
             )
             
             val response: HttpResponse = ApiClient.httpClient.post(posts) {
@@ -99,29 +90,8 @@ class StrapiApiService {
             
             when (response.status) {
                 HttpStatusCode.OK, HttpStatusCode.Created -> {
-                    val responseData = response.body<Map<String, Any>>()
-                    val data = responseData["data"] as? Map<String, Any>
-                    
-                    if (data != null) {
-                        val attributes = data["attributes"] as? Map<String, Any>
-                        val postId = (data["id"] as? Number)?.toInt() ?: 0
-                        
-                        if (attributes != null) {
-                            val post = PostsResponse.Data(
-                                id = postId,
-                                attributes = PostsResponse.Data.Attributes(
-                                    title = attributes["title"] as? String ?: "",
-                                    createdAt = attributes["createdAt"] as? String ?: "",
-                                    updatedAt = attributes["updatedAt"] as? String ?: ""
-                                )
-                            )
-                            Result.success(post)
-                        } else {
-                            Result.failure(Exception("Invalid response data structure"))
-                        }
-                    } else {
-                        Result.failure(Exception("Failed to create post"))
-                    }
+                    val singlePostResponse = response.body<SinglePostResponse>()
+                    Result.success(singlePostResponse.data)
                 }
                 HttpStatusCode.BadRequest -> {
                     Result.failure(Exception("Bad request: Invalid post data"))
@@ -140,10 +110,8 @@ class StrapiApiService {
     
     suspend fun updatePost(id: Int, title: String): Result<PostsResponse.Data> {
         return try {
-            val requestBody = mapOf(
-                "data" to mapOf(
-                    "title" to title
-                )
+            val requestBody = CreatePostRequest(
+                data = CreatePostData(title = title)
             )
             
             val response: HttpResponse = ApiClient.httpClient.put("$posts/$id") {
@@ -152,29 +120,8 @@ class StrapiApiService {
             
             when (response.status) {
                 HttpStatusCode.OK -> {
-                    val responseData = response.body<Map<String, Any>>()
-                    val data = responseData["data"] as? Map<String, Any>
-                    
-                    if (data != null) {
-                        val attributes = data["attributes"] as? Map<String, Any>
-                        val postId = (data["id"] as? Number)?.toInt() ?: 0
-                        
-                        if (attributes != null) {
-                            val post = PostsResponse.Data(
-                                id = postId,
-                                attributes = PostsResponse.Data.Attributes(
-                                    title = attributes["title"] as? String ?: "",
-                                    createdAt = attributes["createdAt"] as? String ?: "",
-                                    updatedAt = attributes["updatedAt"] as? String ?: ""
-                                )
-                            )
-                            Result.success(post)
-                        } else {
-                            Result.failure(Exception("Invalid response data structure"))
-                        }
-                    } else {
-                        Result.failure(Exception("Failed to update post"))
-                    }
+                    val singlePostResponse = response.body<SinglePostResponse>()
+                    Result.success(singlePostResponse.data)
                 }
                 HttpStatusCode.NotFound -> {
                     Result.failure(Exception("Post with ID $id not found"))
