@@ -5,7 +5,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.goiaba.details.DetailsScreen
-//import com.goiaba.details.DetailsScreen
 import com.goiaba.feature.HomeGraphScreen
 import com.goiaba.shared.navigation.Screen
 
@@ -32,6 +31,7 @@ fun SetupNavGraph(startDestination: Screen = Screen.HomeGraph) {
             )
         }
         composable<Screen.PaymentCompleted> {
+            // Payment completed screen placeholder
         }
     }
 }

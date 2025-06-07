@@ -156,6 +156,7 @@ fun HomeGraphScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             InfoCard(
+                                modifier = Modifier,
                                 image = Resources.Image.Cat,
                                 title = "Failed to Load Posts",
                                 subtitle = message
