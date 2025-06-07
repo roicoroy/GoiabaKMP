@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.goiaba.data.models.PostsResponse
 import com.goiaba.shared.FontSize
 import com.goiaba.shared.IconPrimary
 import com.goiaba.shared.Resources
@@ -114,8 +115,8 @@ fun DetailsScreen(navigateBack: () -> Unit) {
                     }
                 }
 
-                // Post content
-                post.DisplayResult(
+                // Post content - Fixed type inference by explicitly specifying the type
+                post.DisplayResult<PostsResponse.Data>(
                     onLoading = {
                         Box(
                             modifier = Modifier

@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
+import com.goiaba.data.models.PostsResponse
 import com.goiaba.shared.Resources
 import com.goiaba.shared.components.InfoCard
 import com.goiaba.shared.util.DisplayResult
@@ -48,7 +49,8 @@ fun HomeGraphScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 
-                posts.DisplayResult(
+                // Fixed type inference by explicitly specifying the type
+                posts.DisplayResult<PostsResponse>(
                     onLoading = { 
                         Box(
                             modifier = Modifier.fillMaxSize(),
