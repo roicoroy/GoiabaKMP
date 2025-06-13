@@ -1,14 +1,19 @@
 package com.goiaba.profile
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.goiaba.data.models.profile.UsersMeResponse
+import com.goiaba.profile.components.AddressCard
+import com.goiaba.profile.components.AdvertCard
+import com.goiaba.profile.components.UserInfoCard
 import com.goiaba.shared.*
 import com.goiaba.shared.components.InfoCard
 import com.goiaba.shared.util.DisplayResult
@@ -28,6 +33,11 @@ fun ProfileScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Update auth state when screen is displayed
+    LaunchedEffect(Unit) {
+        viewModel.updateAuthState()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -38,30 +48,32 @@ fun ProfileScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Column {
-                            Text(
-                                text = "Profile Screen",
-                                fontSize = FontSize.LARGE,
-                                color = TextPrimary
+                        Text(
+                            text = "Profile",
+                            fontSize = FontSize.LARGE,
+                            color = TextPrimary
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = navigateBack) {
+                            Icon(
+                                painter = painterResource(Resources.Icon.BackArrow),
+                                contentDescription = "Back",
+                                tint = IconPrimary
                             )
-                            if (isLoggedIn && userEmail != null) {
-                                Text(
-                                    text = "Welcome, $userEmail",
-                                    fontSize = FontSize.SMALL,
-                                    color = TextPrimary.copy(alpha = 0.7f)
-                                )
-                            }
                         }
                     },
                     actions = {
-                        IconButton(
-                            onClick = { navigateBack() }
-                        ) {
-                            Icon(
-                                painter = painterResource(Resources.Icon.BackArrow),
-                                contentDescription = "Adverts",
-                                tint = IconPrimary
-                            )
+                        if (isLoggedIn) {
+                            IconButton(
+                                onClick = { viewModel.refreshProfile() }
+                            ) {
+                                Icon(
+                                    painter = painterResource(Resources.Icon.Search),
+                                    contentDescription = "Refresh",
+                                    tint = IconPrimary
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -79,76 +91,205 @@ fun ProfileScreen(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                if (!isLoggedIn) {
+                    // Not logged in state
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Home Screen",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        user.DisplayResult(
-                            onLoading = {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        CircularProgressIndicator()
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        Text(
-                                            text = "Loading posts from Strapi...",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            },
-                            onSuccess = { userResponse ->
-                                Text(userResponse.email)
-                            },
-                            onError = { message ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painter = painterResource(Resources.Icon.Warning),
+                                contentDescription = "Warning",
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Not Logged In",
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                Text(
+                                    text = "Please log in to view your profile",
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    fontSize = FontSize.SMALL
+                                )
+                            }
+                            TextButton(
+                                onClick = navigateBack
+                            ) {
+                                Text("Go Back")
+                            }
+                        }
+                    }
+                } else {
+                    // Logged in state - display user profile
+                    user.DisplayResult(
+                        onLoading = {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Button(
-                                        onClick = {
-                                            viewModel.refreshPosts()
-                                        },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        Text("🔄 Retry")
-                                    }
-
-                                    InfoCard(
-                                        modifier = Modifier,
-                                        image = Resources.Image.Cat,
-                                        title = "Failed to Load Posts",
-                                        subtitle = message
+                                    CircularProgressIndicator()
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "Loading profile...",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-
-
-
-
                                 }
                             }
-                        )
-                    }
+                        },
+                        onSuccess = { userResponse ->
+                            ProfileContent(
+                                user = userResponse,
+                                onRefresh = { viewModel.refreshProfile() }
+                            )
+                        },
+                        onError = { message ->
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                InfoCard(
+                                    modifier = Modifier,
+                                    image = Resources.Image.Cat,
+                                    title = "Failed to Load Profile",
+                                    subtitle = message
+                                )
+
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                Button(
+                                    onClick = { viewModel.refreshProfile() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Text("🔄 Retry")
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
     }
 }
 
+@Composable
+private fun ProfileContent(
+    user: UsersMeResponse,
+    onRefresh: () -> Unit
+) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // User Information Card
+        item {
+            UserInfoCard(user = user)
+        }
+
+        // Addresses Section
+        if (user.addresses.isNotEmpty()) {
+            item {
+                Text(
+                    text = "Addresses (${user.addresses.size})",
+                    fontSize = FontSize.LARGE,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            items(user.addresses) { address ->
+                AddressCard(address = address)
+            }
+        }
+
+        // Adverts Section
+        if (user.adverts.isNotEmpty()) {
+            item {
+                Text(
+                    text = "My Adverts (${user.adverts.size})",
+                    fontSize = FontSize.LARGE,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            items(user.adverts) { advert ->
+                AdvertCard(advert = advert)
+            }
+        }
+
+        // Empty states
+        if (user.addresses.isEmpty() && user.adverts.isEmpty()) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "📝",
+                            fontSize = FontSize.EXTRA_LARGE
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Complete Your Profile",
+                            fontSize = FontSize.MEDIUM,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Add addresses and create adverts to get started",
+                            fontSize = FontSize.REGULAR,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        // Refresh button at the bottom
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onRefresh,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("🔄 Refresh Profile")
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
