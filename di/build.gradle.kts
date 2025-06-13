@@ -47,8 +47,6 @@ kotlin {
 
             implementation(project(":feature:adverts"))
             implementation(project(":feature:adverts:advert-details"))
-            implementation(project(":feature:posts"))
-            implementation(project(":feature:posts:details"))
             implementation(project(path = ":feature:auth:login"))
             implementation(project(path = ":feature:auth:register"))
             implementation(project(path = ":feature:logger"))

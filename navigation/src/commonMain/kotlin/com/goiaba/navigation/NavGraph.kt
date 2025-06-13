@@ -5,14 +5,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.goiaba.adverts.AdvertsScreen
-import com.goiaba.details.DetailsScreen
 import com.goiaba.feature.HomeGraphScreen
 import com.goiaba.feature.auth.login.LoginScreen
 import com.goiaba.feature.auth.register.RegisterScreen
 import com.goiaba.home.advert.details.AdvertDetailsScreen
 import com.goiaba.logger.LoggerScreen
 import com.goiaba.logger.details.LoggerDetailsScreen
-import com.goiaba.posts.PostsScreen
 import com.goiaba.profile.ProfileScreen
 import com.goiaba.shared.navigation.Screen
 import com.goiaba.shared.navigation.Screen.LoggerScreen
@@ -86,34 +84,6 @@ fun SetupNavGraph(startDestination: Screen = Screen.HomeGraph) {
                 navigateToLogin = {
                     navController.popBackStack()
                 }
-            )
-        }
-        composable<Screen.PostsScreen> {
-            PostsScreen(
-                navigateToHome = {
-                    navController.navigate(Screen.HomeGraph) {
-                        popUpTo(Screen.HomeGraph) {
-                            inclusive = true
-                        }
-                    }
-                },
-                navigateToDetails = { productId ->
-                    navController.navigate(Screen.Details(id = productId))
-                },
-            )
-        }
-        composable<Screen.Details> {
-            DetailsScreen(
-                navigateBack = {
-                    navController.popBackStack()
-                },
-                navigateToHome = {
-                    navController.navigate(Screen.HomeGraph) {
-                        popUpTo(Screen.HomeGraph) {
-                            inclusive = true
-                        }
-                    }
-                },
             )
         }
         composable<LoggerScreen> {

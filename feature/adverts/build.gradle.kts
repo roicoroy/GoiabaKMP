@@ -47,7 +47,6 @@ kotlin {
 
             implementation(project(path = ":shared"))
             implementation(project(path = ":data"))
-            implementation(project(path = ":feature:posts:details"))
             implementation(project(path = ":feature:auth:login"))
         }
     }
