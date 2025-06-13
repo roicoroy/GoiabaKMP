@@ -1,5 +1,7 @@
 package com.goiaba.data.services.profile
 
+import com.goiaba.data.models.profile.AddressCreateRequest
+import com.goiaba.data.models.profile.AddressCreateResponse
 import com.goiaba.data.models.profile.AddressUpdateRequest
 import com.goiaba.data.models.profile.AddressUpdateResponse
 import com.goiaba.data.models.profile.UsersMeResponse
@@ -28,6 +30,18 @@ class ProfileImpl : ProfileRepository {
             }
         } catch (e: Exception) {
             emit(RequestState.Error("Failed to fetch posts: ${e.message}"))
+        }
+    }
+
+    override suspend fun createAddress(request: AddressCreateRequest): Flow<RequestState<AddressCreateResponse>> = flow {
+        emit(RequestState.Loading)
+
+        try {
+            delay(300)
+            val result = apiService.createAddress(request)
+            emit(result)
+        } catch (e: Exception) {
+            emit(RequestState.Error("Failed to create address: ${e.message}"))
         }
     }
 

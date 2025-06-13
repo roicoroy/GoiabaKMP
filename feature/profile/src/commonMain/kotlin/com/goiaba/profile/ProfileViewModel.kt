@@ -2,6 +2,7 @@ package com.goiaba.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.goiaba.data.models.profile.AddressCreateRequest
 import com.goiaba.data.models.profile.AddressUpdateRequest
 import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.data.networking.ApiClient
@@ -52,6 +53,63 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                 }
             } catch (e: Exception) {
                 _user.value = RequestState.Error("Failed to load profile: ${e.message}")
+            }
+        }
+    }
+
+    fun createAddress(
+        firstName: String,
+        lastName: String,
+        firstLineAddress: String,
+        secondLineAddress: String?,
+        postCode: String,
+        city: String?,
+        country: String?,
+        phoneNumber: String?
+    ) {
+        viewModelScope.launch {
+            _isUpdatingAddress.value = true
+            _updateMessage.value = null
+
+            try {
+                val userId = TokenManager.getUserId()
+                val request = AddressCreateRequest(
+                    data = AddressCreateRequest.AddressCreateData(
+                        firstName = firstName,
+                        lastName = lastName,
+                        firstLineAddress = firstLineAddress,
+                        secondLineAddress = secondLineAddress,
+                        postCode = postCode,
+                        city = city,
+                        country = country,
+                        phoneNumber = phoneNumber,
+                        user = userId
+                    )
+                )
+
+                profileRepository.createAddress(request).collect { result ->
+                    when (result) {
+                        is RequestState.Loading -> {
+                            _isUpdatingAddress.value = true
+                        }
+                        is RequestState.Success -> {
+                            _isUpdatingAddress.value = false
+                            _updateMessage.value = "Address created successfully!"
+                            // Refresh profile to get updated data
+                            loadUserProfile()
+                        }
+                        is RequestState.Error -> {
+                            _isUpdatingAddress.value = false
+                            _updateMessage.value = "Failed to create address: ${result.message}"
+                        }
+                        else -> {
+                            _isUpdatingAddress.value = false
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _isUpdatingAddress.value = false
+                _updateMessage.value = "Error creating address: ${e.message}"
             }
         }
     }

@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.profile.components.AddressCard
+import com.goiaba.profile.components.AddressEditModal
 import com.goiaba.profile.components.AdvertCard
 import com.goiaba.profile.components.UserInfoCard
 import com.goiaba.profile.details.AddressDetailsScreen
@@ -38,6 +39,9 @@ fun ProfileScreen(
     // State for detail screens
     var selectedAdvert by remember { mutableStateOf<com.goiaba.data.models.profile.Advert?>(null) }
     var selectedAddress by remember { mutableStateOf<com.goiaba.data.models.profile.Addresse?>(null) }
+    
+    // State for add address modal
+    var showAddAddressModal by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -208,9 +212,11 @@ fun ProfileScreen(
                         onSuccess = { userResponse ->
                             ProfileContent(
                                 user = userResponse,
+                                isUpdatingAddress = isUpdatingAddress,
                                 onRefresh = { viewModel.refreshProfile() },
                                 onAdvertClick = { advert -> selectedAdvert = advert },
-                                onAddressClick = { address -> selectedAddress = address }
+                                onAddressClick = { address -> selectedAddress = address },
+                                onAddAddressClick = { showAddAddressModal = true }
                             )
                         },
                         onError = { message ->
@@ -242,15 +248,38 @@ fun ProfileScreen(
                 }
             }
         }
+        
+        // Add Address Modal
+        AddressEditModal(
+            isVisible = showAddAddressModal,
+            address = null, // null for creating new address
+            isLoading = isUpdatingAddress,
+            onDismiss = { showAddAddressModal = false },
+            onSave = { firstName, lastName, firstLineAddress, secondLineAddress, postCode, city, country, phoneNumber ->
+                viewModel.createAddress(
+                    firstName = firstName,
+                    lastName = lastName,
+                    firstLineAddress = firstLineAddress,
+                    secondLineAddress = secondLineAddress,
+                    postCode = postCode,
+                    city = city,
+                    country = country,
+                    phoneNumber = phoneNumber
+                )
+                showAddAddressModal = false
+            }
+        )
     }
 }
 
 @Composable
 private fun ProfileContent(
     user: UsersMeResponse,
+    isUpdatingAddress: Boolean,
     onRefresh: () -> Unit,
     onAdvertClick: (com.goiaba.data.models.profile.Advert) -> Unit,
-    onAddressClick: (com.goiaba.data.models.profile.Addresse) -> Unit
+    onAddressClick: (com.goiaba.data.models.profile.Addresse) -> Unit,
+    onAddAddressClick: () -> Unit
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -261,22 +290,106 @@ private fun ProfileContent(
         }
 
         // Addresses Section
-        if (user.addresses.isNotEmpty()) {
-            item {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = "Addresses (${user.addresses.size})",
                     fontSize = FontSize.LARGE,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    color = TextPrimary
                 )
+                
+                Button(
+                    onClick = onAddAddressClick,
+                    enabled = !isUpdatingAddress,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    if (isUpdatingAddress) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Text("Adding...")
+                        }
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(Resources.Icon.Plus),
+                                contentDescription = "Add address",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text("Add Address")
+                        }
+                    }
+                }
             }
+        }
 
+        if (user.addresses.isNotEmpty()) {
             items(user.addresses) { address ->
                 AddressCard(
                     address = address,
                     onAddressClick = onAddressClick
                 )
+            }
+        } else {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "🏠",
+                            fontSize = FontSize.EXTRA_LARGE
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "No Addresses Yet",
+                            fontSize = FontSize.MEDIUM,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Add your first address to get started",
+                            fontSize = FontSize.REGULAR,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = onAddAddressClick,
+                            enabled = !isUpdatingAddress
+                        ) {
+                            Text("Add Address")
+                        }
+                    }
+                }
             }
         }
 

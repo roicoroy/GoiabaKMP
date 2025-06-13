@@ -1,5 +1,7 @@
 package com.goiaba.data.services.profile
 
+import com.goiaba.data.models.profile.AddressCreateRequest
+import com.goiaba.data.models.profile.AddressCreateResponse
 import com.goiaba.data.models.profile.AddressUpdateRequest
 import com.goiaba.data.models.profile.AddressUpdateResponse
 import com.goiaba.data.models.profile.UsersMeResponse
@@ -25,6 +27,38 @@ class ProfileService {
                 }
                 HttpStatusCode.Unauthorized -> {
                     RequestState.Error("Unauthorized: Invalid API token")
+                }
+                else -> {
+                    RequestState.Error("HTTP ${response.status.value}: ${response.status.description}")
+                }
+            }
+        } catch (e: Exception) {
+            RequestState.Error("Network error: ${e.message ?: "Unknown error occurred"}")
+        }
+    }
+
+    suspend fun createAddress(request: AddressCreateRequest): RequestState<AddressCreateResponse> {
+        return try {
+            val response: HttpResponse = ApiClient.httpClient.post("api/addresses") {
+                setBody(request)
+            }
+            
+            when (response.status) {
+                HttpStatusCode.OK, HttpStatusCode.Created -> {
+                    val addressResponse = response.body<AddressCreateResponse>()
+                    RequestState.Success(addressResponse)
+                }
+                HttpStatusCode.BadRequest -> {
+                    RequestState.Error("Invalid address data. Please check your information.")
+                }
+                HttpStatusCode.Unauthorized -> {
+                    RequestState.Error("Unauthorized: Please login to create addresses")
+                }
+                HttpStatusCode.Forbidden -> {
+                    RequestState.Error("You don't have permission to create addresses")
+                }
+                HttpStatusCode.InternalServerError -> {
+                    RequestState.Error("Server error: Please try again later")
                 }
                 else -> {
                     RequestState.Error("HTTP ${response.status.value}: ${response.status.description}")
