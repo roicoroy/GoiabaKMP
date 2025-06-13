@@ -25,9 +25,8 @@ data class AddressCreateRequest(
         @SerialName("country")
         val country: String? = null,
         @SerialName("phone_number")
-        val phoneNumber: String? = null,
-        @SerialName("user")
-        val user: Int? = null // User ID to associate the address with
+        val phoneNumber: String? = null
+        // Removed user field - we'll handle the association separately via user update
     )
 }
 

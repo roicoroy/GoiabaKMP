@@ -4,6 +4,8 @@ import com.goiaba.data.models.profile.AddressCreateRequest
 import com.goiaba.data.models.profile.AddressCreateResponse
 import com.goiaba.data.models.profile.AddressUpdateRequest
 import com.goiaba.data.models.profile.AddressUpdateResponse
+import com.goiaba.data.models.profile.UserUpdateRequest
+import com.goiaba.data.models.profile.UserUpdateResponse
 import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.data.services.profile.domain.ProfileRepository
 import com.goiaba.shared.util.RequestState
@@ -66,6 +68,18 @@ class ProfileImpl : ProfileRepository {
             emit(result)
         } catch (e: Exception) {
             emit(RequestState.Error("Failed to delete address: ${e.message}"))
+        }
+    }
+
+    override suspend fun updateUser(userDocumentId: String, request: UserUpdateRequest): Flow<RequestState<UserUpdateResponse>> = flow {
+        emit(RequestState.Loading)
+
+        try {
+            delay(300)
+            val result = apiService.updateUser(userDocumentId, request)
+            emit(result)
+        } catch (e: Exception) {
+            emit(RequestState.Error("Failed to update user: ${e.message}"))
         }
     }
 }

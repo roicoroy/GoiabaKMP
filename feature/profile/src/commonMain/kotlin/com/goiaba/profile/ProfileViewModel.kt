@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.goiaba.data.models.profile.AddressCreateRequest
 import com.goiaba.data.models.profile.AddressUpdateRequest
+import com.goiaba.data.models.profile.UserUpdateRequest
 import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.data.networking.ApiClient
 import com.goiaba.data.services.profile.domain.ProfileRepository
@@ -72,7 +73,7 @@ class ProfileViewModel : ViewModel(), KoinComponent {
             _updateMessage.value = null
 
             try {
-                val userId = TokenManager.getUserId()
+                // Step 1: Create the address
                 val request = AddressCreateRequest(
                     data = AddressCreateRequest.AddressCreateData(
                         firstName = firstName,
@@ -82,8 +83,7 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                         postCode = postCode,
                         city = city,
                         country = country,
-                        phoneNumber = phoneNumber,
-                        user = userId
+                        phoneNumber = phoneNumber
                     )
                 )
 
@@ -93,10 +93,20 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                             _isUpdatingAddress.value = true
                         }
                         is RequestState.Success -> {
-                            _isUpdatingAddress.value = false
-                            _updateMessage.value = "Address created successfully!"
-                            // Refresh profile to get updated data
-                            loadUserProfile()
+                            // Step 2: Get current user data to update the addresses relation
+                            val currentUser = _user.value.getSuccessDataOrNull()
+                            if (currentUser != null) {
+                                val newAddressDocumentId = result.data.data.documentId
+                                val currentAddressIds = currentUser.addresses.map { it.documentId }
+                                val updatedAddressIds = currentAddressIds + newAddressDocumentId
+
+                                // Step 3: Update user with new address relation
+                                updateUserAddresses(currentUser.documentId, updatedAddressIds)
+                            } else {
+                                _isUpdatingAddress.value = false
+                                _updateMessage.value = "Address created but failed to link to user profile"
+                                loadUserProfile() // Still refresh to show the address
+                            }
                         }
                         is RequestState.Error -> {
                             _isUpdatingAddress.value = false
@@ -111,6 +121,40 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                 _isUpdatingAddress.value = false
                 _updateMessage.value = "Error creating address: ${e.message}"
             }
+        }
+    }
+
+    private suspend fun updateUserAddresses(userDocumentId: String, addressIds: List<String>) {
+        try {
+            val userUpdateRequest = UserUpdateRequest(
+                data = UserUpdateRequest.UserUpdateData(
+                    addresses = addressIds
+                )
+            )
+
+            profileRepository.updateUser(userDocumentId, userUpdateRequest).collect { result ->
+                when (result) {
+                    is RequestState.Success -> {
+                        _isUpdatingAddress.value = false
+                        _updateMessage.value = "Address created and linked successfully!"
+                        // Refresh profile to get updated data
+                        loadUserProfile()
+                    }
+                    is RequestState.Error -> {
+                        _isUpdatingAddress.value = false
+                        _updateMessage.value = "Address created but failed to link: ${result.message}"
+                        // Still refresh to show the address
+                        loadUserProfile()
+                    }
+                    else -> {
+                        // Keep loading state
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            _isUpdatingAddress.value = false
+            _updateMessage.value = "Address created but linking failed: ${e.message}"
+            loadUserProfile()
         }
     }
 
@@ -176,16 +220,27 @@ class ProfileViewModel : ViewModel(), KoinComponent {
             _updateMessage.value = null
 
             try {
+                // Step 1: Delete the address
                 profileRepository.deleteAddress(addressId).collect { result ->
                     when (result) {
                         is RequestState.Loading -> {
                             _isUpdatingAddress.value = true
                         }
                         is RequestState.Success -> {
-                            _isUpdatingAddress.value = false
-                            _updateMessage.value = "Address deleted successfully!"
-                            // Refresh profile to get updated data
-                            loadUserProfile()
+                            // Step 2: Update user to remove the address relation
+                            val currentUser = _user.value.getSuccessDataOrNull()
+                            if (currentUser != null) {
+                                val updatedAddressIds = currentUser.addresses
+                                    .filter { it.documentId != addressId }
+                                    .map { it.documentId }
+
+                                // Step 3: Update user with removed address relation
+                                updateUserAddressesAfterDelete(currentUser.documentId, updatedAddressIds)
+                            } else {
+                                _isUpdatingAddress.value = false
+                                _updateMessage.value = "Address deleted successfully!"
+                                loadUserProfile()
+                            }
                         }
                         is RequestState.Error -> {
                             _isUpdatingAddress.value = false
@@ -200,6 +255,40 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                 _isUpdatingAddress.value = false
                 _updateMessage.value = "Error deleting address: ${e.message}"
             }
+        }
+    }
+
+    private suspend fun updateUserAddressesAfterDelete(userDocumentId: String, addressIds: List<String>) {
+        try {
+            val userUpdateRequest = UserUpdateRequest(
+                data = UserUpdateRequest.UserUpdateData(
+                    addresses = addressIds
+                )
+            )
+
+            profileRepository.updateUser(userDocumentId, userUpdateRequest).collect { result ->
+                when (result) {
+                    is RequestState.Success -> {
+                        _isUpdatingAddress.value = false
+                        _updateMessage.value = "Address deleted successfully!"
+                        // Refresh profile to get updated data
+                        loadUserProfile()
+                    }
+                    is RequestState.Error -> {
+                        _isUpdatingAddress.value = false
+                        _updateMessage.value = "Address deleted but failed to update profile: ${result.message}"
+                        // Still refresh to show updated data
+                        loadUserProfile()
+                    }
+                    else -> {
+                        // Keep loading state
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            _isUpdatingAddress.value = false
+            _updateMessage.value = "Address deleted but profile update failed: ${e.message}"
+            loadUserProfile()
         }
     }
 
