@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.goiaba.data.models.profile.Addresse
+import com.goiaba.profile.components.AddressEditModal
 import com.goiaba.shared.*
 import org.jetbrains.compose.resources.painterResource
 
@@ -18,14 +19,30 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun AddressDetailsScreen(
     address: Addresse,
+    isLoading: Boolean = false,
+    onUpdateAddress: (
+        firstName: String,
+        lastName: String,
+        firstLineAddress: String,
+        secondLineAddress: String?,
+        postCode: String,
+        city: String?,
+        country: String?,
+        phoneNumber: String?
+    ) -> Unit,
+    onDeleteAddress: () -> Unit,
     navigateBack: () -> Unit
 ) {
+    var showEditModal by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = {
@@ -40,6 +57,18 @@ fun AddressDetailsScreen(
                             Icon(
                                 painter = painterResource(Resources.Icon.BackArrow),
                                 contentDescription = "Back",
+                                tint = IconPrimary
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = { showEditModal = true },
+                            enabled = !isLoading
+                        ) {
+                            Icon(
+                                painter = painterResource(Resources.Icon.Edit),
+                                contentDescription = "Edit address",
                                 tint = IconPrimary
                             )
                         }
@@ -292,15 +321,40 @@ fun AddressDetailsScreen(
                     }
                     
                     Button(
-                        onClick = { /* TODO: Edit functionality */ },
+                        onClick = { showEditModal = true },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        enabled = !isLoading
                     ) {
-                        Text("✏️ Edit Address")
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("✏️ Edit Address")
+                        }
                     }
                 }
             }
         }
+        
+        // Edit Modal
+        AddressEditModal(
+            isVisible = showEditModal,
+            address = address,
+            isLoading = isLoading,
+            onDismiss = { showEditModal = false },
+            onSave = { firstName, lastName, firstLineAddress, secondLineAddress, postCode, city, country, phoneNumber ->
+                onUpdateAddress(firstName, lastName, firstLineAddress, secondLineAddress, postCode, city, country, phoneNumber)
+                showEditModal = false
+            },
+            onDelete = {
+                onDeleteAddress()
+                showEditModal = false
+            }
+        )
     }
 }
 

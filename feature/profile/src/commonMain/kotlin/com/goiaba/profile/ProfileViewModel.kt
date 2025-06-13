@@ -2,6 +2,7 @@ package com.goiaba.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.goiaba.data.models.profile.AddressUpdateRequest
 import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.data.networking.ApiClient
 import com.goiaba.data.services.profile.domain.ProfileRepository
@@ -27,6 +28,13 @@ class ProfileViewModel : ViewModel(), KoinComponent {
     private val _user = MutableStateFlow<RequestState<UsersMeResponse>>(RequestState.Loading)
     val user: StateFlow<RequestState<UsersMeResponse>> = _user.asStateFlow()
 
+    // Address editing state
+    private val _isUpdatingAddress = MutableStateFlow(false)
+    val isUpdatingAddress: StateFlow<Boolean> = _isUpdatingAddress.asStateFlow()
+
+    private val _updateMessage = MutableStateFlow<String?>(null)
+    val updateMessage: StateFlow<String?> = _updateMessage.asStateFlow()
+
     init {
         updateAuthState()
         if (_isLoggedIn.value) {
@@ -44,6 +52,95 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                 }
             } catch (e: Exception) {
                 _user.value = RequestState.Error("Failed to load profile: ${e.message}")
+            }
+        }
+    }
+
+    fun updateAddress(
+        addressId: String,
+        firstName: String,
+        lastName: String,
+        firstLineAddress: String,
+        secondLineAddress: String?,
+        postCode: String,
+        city: String?,
+        country: String?,
+        phoneNumber: String?
+    ) {
+        viewModelScope.launch {
+            _isUpdatingAddress.value = true
+            _updateMessage.value = null
+
+            try {
+                val request = AddressUpdateRequest(
+                    data = AddressUpdateRequest.AddressData(
+                        firstName = firstName,
+                        lastName = lastName,
+                        firstLineAddress = firstLineAddress,
+                        secondLineAddress = secondLineAddress,
+                        postCode = postCode,
+                        city = city,
+                        country = country,
+                        phoneNumber = phoneNumber
+                    )
+                )
+
+                profileRepository.updateAddress(addressId, request).collect { result ->
+                    when (result) {
+                        is RequestState.Loading -> {
+                            _isUpdatingAddress.value = true
+                        }
+                        is RequestState.Success -> {
+                            _isUpdatingAddress.value = false
+                            _updateMessage.value = "Address updated successfully!"
+                            // Refresh profile to get updated data
+                            loadUserProfile()
+                        }
+                        is RequestState.Error -> {
+                            _isUpdatingAddress.value = false
+                            _updateMessage.value = "Failed to update address: ${result.message}"
+                        }
+                        else -> {
+                            _isUpdatingAddress.value = false
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _isUpdatingAddress.value = false
+                _updateMessage.value = "Error updating address: ${e.message}"
+            }
+        }
+    }
+
+    fun deleteAddress(addressId: String) {
+        viewModelScope.launch {
+            _isUpdatingAddress.value = true
+            _updateMessage.value = null
+
+            try {
+                profileRepository.deleteAddress(addressId).collect { result ->
+                    when (result) {
+                        is RequestState.Loading -> {
+                            _isUpdatingAddress.value = true
+                        }
+                        is RequestState.Success -> {
+                            _isUpdatingAddress.value = false
+                            _updateMessage.value = "Address deleted successfully!"
+                            // Refresh profile to get updated data
+                            loadUserProfile()
+                        }
+                        is RequestState.Error -> {
+                            _isUpdatingAddress.value = false
+                            _updateMessage.value = "Failed to delete address: ${result.message}"
+                        }
+                        else -> {
+                            _isUpdatingAddress.value = false
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _isUpdatingAddress.value = false
+                _updateMessage.value = "Error deleting address: ${e.message}"
             }
         }
     }
@@ -70,5 +167,9 @@ class ProfileViewModel : ViewModel(), KoinComponent {
         _isLoggedIn.value = false
         _userEmail.value = null
         _user.value = RequestState.Idle
+    }
+
+    fun clearUpdateMessage() {
+        _updateMessage.value = null
     }
 }

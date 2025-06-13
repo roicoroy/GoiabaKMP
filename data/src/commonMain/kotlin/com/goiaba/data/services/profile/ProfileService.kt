@@ -1,5 +1,7 @@
 package com.goiaba.data.services.profile
 
+import com.goiaba.data.models.profile.AddressUpdateRequest
+import com.goiaba.data.models.profile.AddressUpdateResponse
 import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.data.networking.ApiClient
 import com.goiaba.data.networking.apiUsersMe
@@ -10,7 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 
 class ProfileService {
-    suspend fun getUsersMe():RequestState<UsersMeResponse> {
+    suspend fun getUsersMe(): RequestState<UsersMeResponse> {
         return try {
             val response: HttpResponse = ApiClient.httpClient.get(apiUsersMe)
             when (response.status) {
@@ -19,17 +21,81 @@ class ProfileService {
                     RequestState.Success(usersMeResponseHttp)
                 }
                 HttpStatusCode.NotFound -> {
-                    RequestState.Error(("User not found"))
+                    RequestState.Error("User not found")
                 }
                 HttpStatusCode.Unauthorized -> {
-                    RequestState.Error(("Unauthorized: Invalid API token"))
+                    RequestState.Error("Unauthorized: Invalid API token")
                 }
                 else -> {
-                    RequestState.Error(("HTTP ${response.status.value}: ${response.status.description}"))
+                    RequestState.Error("HTTP ${response.status.value}: ${response.status.description}")
                 }
             }
         } catch (e: Exception) {
-            RequestState.Error(("Network error: ${e.message ?: "Unknown error occurred"}"))
+            RequestState.Error("Network error: ${e.message ?: "Unknown error occurred"}")
+        }
+    }
+
+    suspend fun updateAddress(addressId: String, request: AddressUpdateRequest): RequestState<AddressUpdateResponse> {
+        return try {
+            val response: HttpResponse = ApiClient.httpClient.put("api/addresses/$addressId") {
+                setBody(request)
+            }
+            
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    val addressResponse = response.body<AddressUpdateResponse>()
+                    RequestState.Success(addressResponse)
+                }
+                HttpStatusCode.BadRequest -> {
+                    RequestState.Error("Invalid address data. Please check your information.")
+                }
+                HttpStatusCode.Unauthorized -> {
+                    RequestState.Error("Unauthorized: Please login to update addresses")
+                }
+                HttpStatusCode.NotFound -> {
+                    RequestState.Error("Address not found")
+                }
+                HttpStatusCode.Forbidden -> {
+                    RequestState.Error("You don't have permission to update this address")
+                }
+                HttpStatusCode.InternalServerError -> {
+                    RequestState.Error("Server error: Please try again later")
+                }
+                else -> {
+                    RequestState.Error("HTTP ${response.status.value}: ${response.status.description}")
+                }
+            }
+        } catch (e: Exception) {
+            RequestState.Error("Network error: ${e.message ?: "Unknown error occurred"}")
+        }
+    }
+
+    suspend fun deleteAddress(addressId: String): RequestState<Boolean> {
+        return try {
+            val response: HttpResponse = ApiClient.httpClient.delete("api/addresses/$addressId")
+            
+            when (response.status) {
+                HttpStatusCode.OK, HttpStatusCode.NoContent -> {
+                    RequestState.Success(true)
+                }
+                HttpStatusCode.Unauthorized -> {
+                    RequestState.Error("Unauthorized: Please login to delete addresses")
+                }
+                HttpStatusCode.NotFound -> {
+                    RequestState.Error("Address not found")
+                }
+                HttpStatusCode.Forbidden -> {
+                    RequestState.Error("You don't have permission to delete this address")
+                }
+                HttpStatusCode.InternalServerError -> {
+                    RequestState.Error("Server error: Please try again later")
+                }
+                else -> {
+                    RequestState.Error("HTTP ${response.status.value}: ${response.status.description}")
+                }
+            }
+        } catch (e: Exception) {
+            RequestState.Error("Network error: ${e.message ?: "Unknown error occurred"}")
         }
     }
 }

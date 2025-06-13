@@ -1,5 +1,7 @@
 package com.goiaba.data.services.profile
 
+import com.goiaba.data.models.profile.AddressUpdateRequest
+import com.goiaba.data.models.profile.AddressUpdateResponse
 import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.data.services.profile.domain.ProfileRepository
 import com.goiaba.shared.util.RequestState
@@ -9,6 +11,7 @@ import kotlinx.coroutines.flow.flow
 
 class ProfileImpl : ProfileRepository {
     private val apiService = ProfileService()
+    
     override fun getUsersMe(): Flow<RequestState<UsersMeResponse>> = flow {
         emit(RequestState.Loading)
 
@@ -19,14 +22,36 @@ class ProfileImpl : ProfileRepository {
             val result = apiService.getUsersMe()
 
             if (result.isSuccess()) {
-                emit(
-                    RequestState.Success(result.getSuccessData())
-                )
+                emit(RequestState.Success(result.getSuccessData()))
             } else {
                 emit(RequestState.Error("Unknown error occurred"))
             }
         } catch (e: Exception) {
             emit(RequestState.Error("Failed to fetch posts: ${e.message}"))
+        }
+    }
+
+    override suspend fun updateAddress(addressId: String, request: AddressUpdateRequest): Flow<RequestState<AddressUpdateResponse>> = flow {
+        emit(RequestState.Loading)
+
+        try {
+            delay(300)
+            val result = apiService.updateAddress(addressId, request)
+            emit(result)
+        } catch (e: Exception) {
+            emit(RequestState.Error("Failed to update address: ${e.message}"))
+        }
+    }
+
+    override suspend fun deleteAddress(addressId: String): Flow<RequestState<Boolean>> = flow {
+        emit(RequestState.Loading)
+
+        try {
+            delay(300)
+            val result = apiService.deleteAddress(addressId)
+            emit(result)
+        } catch (e: Exception) {
+            emit(RequestState.Error("Failed to delete address: ${e.message}"))
         }
     }
 }

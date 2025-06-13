@@ -32,6 +32,8 @@ fun ProfileScreen(
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
     val user by viewModel.user.collectAsState()
+    val isUpdatingAddress by viewModel.isUpdatingAddress.collectAsState()
+    val updateMessage by viewModel.updateMessage.collectAsState()
 
     // State for detail screens
     var selectedAdvert by remember { mutableStateOf<com.goiaba.data.models.profile.Advert?>(null) }
@@ -42,6 +44,14 @@ fun ProfileScreen(
     // Update auth state when screen is displayed
     LaunchedEffect(Unit) {
         viewModel.updateAuthState()
+    }
+
+    // Show update messages
+    LaunchedEffect(updateMessage) {
+        updateMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearUpdateMessage()
+        }
     }
 
     // Show detail screens when items are selected
@@ -56,6 +66,24 @@ fun ProfileScreen(
     selectedAddress?.let { address ->
         AddressDetailsScreen(
             address = address,
+            isLoading = isUpdatingAddress,
+            onUpdateAddress = { firstName, lastName, firstLineAddress, secondLineAddress, postCode, city, country, phoneNumber ->
+                viewModel.updateAddress(
+                    addressId = address.documentId,
+                    firstName = firstName,
+                    lastName = lastName,
+                    firstLineAddress = firstLineAddress,
+                    secondLineAddress = secondLineAddress,
+                    postCode = postCode,
+                    city = city,
+                    country = country,
+                    phoneNumber = phoneNumber
+                )
+            },
+            onDeleteAddress = {
+                viewModel.deleteAddress(address.documentId)
+                selectedAddress = null
+            },
             navigateBack = { selectedAddress = null }
         )
         return
