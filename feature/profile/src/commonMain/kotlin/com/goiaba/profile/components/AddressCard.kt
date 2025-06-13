@@ -1,5 +1,6 @@
 package com.goiaba.profile.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -15,10 +16,17 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun AddressCard(
-    address: Addresse
+    address: Addresse,
+    onAddressClick: ((Addresse) -> Unit)? = null
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onAddressClick != null) {
+                    Modifier.clickable { onAddressClick(address) }
+                } else Modifier
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -64,6 +72,21 @@ fun AddressCard(
                         fontSize = FontSize.SMALL,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+                
+                // Clickable indicator
+                if (onAddressClick != null) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(
+                            text = "→",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
             

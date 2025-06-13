@@ -14,6 +14,8 @@ import com.goiaba.data.models.profile.UsersMeResponse
 import com.goiaba.profile.components.AddressCard
 import com.goiaba.profile.components.AdvertCard
 import com.goiaba.profile.components.UserInfoCard
+import com.goiaba.profile.details.AddressDetailsScreen
+import com.goiaba.profile.details.AdvertDetailsScreen
 import com.goiaba.shared.*
 import com.goiaba.shared.components.InfoCard
 import com.goiaba.shared.util.DisplayResult
@@ -31,11 +33,32 @@ fun ProfileScreen(
     val userEmail by viewModel.userEmail.collectAsState()
     val user by viewModel.user.collectAsState()
 
+    // State for detail screens
+    var selectedAdvert by remember { mutableStateOf<com.goiaba.data.models.profile.Advert?>(null) }
+    var selectedAddress by remember { mutableStateOf<com.goiaba.data.models.profile.Addresse?>(null) }
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Update auth state when screen is displayed
     LaunchedEffect(Unit) {
         viewModel.updateAuthState()
+    }
+
+    // Show detail screens when items are selected
+    selectedAdvert?.let { advert ->
+        AdvertDetailsScreen(
+            advert = advert,
+            navigateBack = { selectedAdvert = null }
+        )
+        return
+    }
+
+    selectedAddress?.let { address ->
+        AddressDetailsScreen(
+            address = address,
+            navigateBack = { selectedAddress = null }
+        )
+        return
     }
 
     Box(
@@ -157,7 +180,9 @@ fun ProfileScreen(
                         onSuccess = { userResponse ->
                             ProfileContent(
                                 user = userResponse,
-                                onRefresh = { viewModel.refreshProfile() }
+                                onRefresh = { viewModel.refreshProfile() },
+                                onAdvertClick = { advert -> selectedAdvert = advert },
+                                onAddressClick = { address -> selectedAddress = address }
                             )
                         },
                         onError = { message ->
@@ -195,7 +220,9 @@ fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     user: UsersMeResponse,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onAdvertClick: (com.goiaba.data.models.profile.Advert) -> Unit,
+    onAddressClick: (com.goiaba.data.models.profile.Addresse) -> Unit
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -218,7 +245,10 @@ private fun ProfileContent(
             }
 
             items(user.addresses) { address ->
-                AddressCard(address = address)
+                AddressCard(
+                    address = address,
+                    onAddressClick = onAddressClick
+                )
             }
         }
 
@@ -235,7 +265,10 @@ private fun ProfileContent(
             }
 
             items(user.adverts) { advert ->
-                AdvertCard(advert = advert)
+                AdvertCard(
+                    advert = advert,
+                    onAdvertClick = onAdvertClick
+                )
             }
         }
 
