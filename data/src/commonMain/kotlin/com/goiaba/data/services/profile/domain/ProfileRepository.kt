@@ -1,5 +1,6 @@
 package com.goiaba.data.services.profile.domain
 
+import com.goiaba.data.models.profile.AddUserToAddressResponse
 import com.goiaba.data.models.profile.AddressCreateRequest
 import com.goiaba.data.models.profile.AddressCreateResponse
 import com.goiaba.data.models.profile.AddressUpdateRequest
@@ -16,4 +17,5 @@ interface ProfileRepository {
     suspend fun updateAddress(addressId: String, request: AddressUpdateRequest): Flow<RequestState<AddressUpdateResponse>>
     suspend fun deleteAddress(addressId: String): Flow<RequestState<Boolean>>
     suspend fun updateUser(userDocumentId: String, request: UserUpdateRequest): Flow<RequestState<UserUpdateResponse>>
+    suspend fun addUserToAddress(userId: Int, addressId: String): Flow<RequestState<AddUserToAddressResponse>>
 }

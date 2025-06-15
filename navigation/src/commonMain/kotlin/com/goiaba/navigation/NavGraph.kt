@@ -11,6 +11,7 @@ import com.goiaba.feature.auth.register.RegisterScreen
 import com.goiaba.home.advert.details.AdvertDetailsScreen
 import com.goiaba.logger.LoggerScreen
 import com.goiaba.logger.details.LoggerDetailsScreen
+import com.goiaba.profile.AdvertsListScreen
 import com.goiaba.profile.ProfileScreen
 import com.goiaba.shared.navigation.Screen
 import com.goiaba.shared.navigation.Screen.LoggerScreen
@@ -53,6 +54,20 @@ fun SetupNavGraph(startDestination: Screen = Screen.HomeGraph) {
         }
         composable<Screen.ProfileScreen> {
             ProfileScreen(
+                navigateToAdvertsListScreen = {
+                    navController.navigate(Screen.AdvertsListScreen) {
+                        popUpTo(Screen.AdvertsListScreen) {
+                            inclusive = true
+                        }
+                    }
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                },
+            )
+        }
+        composable<Screen.AdvertsListScreen> {
+            AdvertsListScreen(
                 navigateBack = {
                     navController.popBackStack()
                 },

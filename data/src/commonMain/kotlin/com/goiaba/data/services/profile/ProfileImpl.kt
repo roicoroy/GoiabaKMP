@@ -1,5 +1,6 @@
 package com.goiaba.data.services.profile
 
+import com.goiaba.data.models.profile.AddUserToAddressResponse
 import com.goiaba.data.models.profile.AddressCreateRequest
 import com.goiaba.data.models.profile.AddressCreateResponse
 import com.goiaba.data.models.profile.AddressUpdateRequest
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.flow
 
 class ProfileImpl : ProfileRepository {
     private val apiService = ProfileService()
-    
+
     override fun getUsersMe(): Flow<RequestState<UsersMeResponse>> = flow {
         emit(RequestState.Loading)
 
@@ -35,19 +36,23 @@ class ProfileImpl : ProfileRepository {
         }
     }
 
-    override suspend fun createAddress(request: AddressCreateRequest): Flow<RequestState<AddressCreateResponse>> = flow {
-        emit(RequestState.Loading)
+    override suspend fun createAddress(request: AddressCreateRequest): Flow<RequestState<AddressCreateResponse>> =
+        flow {
+            emit(RequestState.Loading)
 
-        try {
-            delay(300)
-            val result = apiService.createAddress(request)
-            emit(result)
-        } catch (e: Exception) {
-            emit(RequestState.Error("Failed to create address: ${e.message}"))
+            try {
+                delay(300)
+                val result = apiService.createAddress(request)
+                emit(result)
+            } catch (e: Exception) {
+                emit(RequestState.Error("Failed to create address: ${e.message}"))
+            }
         }
-    }
 
-    override suspend fun updateAddress(addressId: String, request: AddressUpdateRequest): Flow<RequestState<AddressUpdateResponse>> = flow {
+    override suspend fun updateAddress(
+        addressId: String,
+        request: AddressUpdateRequest
+    ): Flow<RequestState<AddressUpdateResponse>> = flow {
         emit(RequestState.Loading)
 
         try {
@@ -71,7 +76,10 @@ class ProfileImpl : ProfileRepository {
         }
     }
 
-    override suspend fun updateUser(userDocumentId: String, request: UserUpdateRequest): Flow<RequestState<UserUpdateResponse>> = flow {
+    override suspend fun updateUser(
+        userDocumentId: String,
+        request: UserUpdateRequest
+    ): Flow<RequestState<UserUpdateResponse>> = flow {
         emit(RequestState.Loading)
 
         try {
@@ -82,4 +90,19 @@ class ProfileImpl : ProfileRepository {
             emit(RequestState.Error("Failed to update user: ${e.message}"))
         }
     }
+
+    override suspend fun addUserToAddress(
+        userId: Int,
+        addressId: String,
+    ): Flow<RequestState<AddUserToAddressResponse>> = flow {
+        emit(RequestState.Loading)
+        try {
+            delay(300)
+            val result = apiService.addUserToAddress(userId, addressId)
+            emit(result)
+        } catch (e: Exception) {
+            emit(RequestState.Error("Failed to update user: ${e.message}"))
+        }
+    }
+
 }

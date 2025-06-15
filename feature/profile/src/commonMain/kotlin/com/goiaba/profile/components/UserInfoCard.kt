@@ -68,20 +68,20 @@ fun UserInfoCard(
                 }
                 
                 // Professional badge
-                if (user.professional) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        Text(
-                            text = "💼 Pro",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            fontSize = FontSize.SMALL,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
+//                if (user.professional) {
+//                    Surface(
+//                        color = MaterialTheme.colorScheme.secondaryContainer,
+//                        shape = RoundedCornerShape(20.dp)
+//                    ) {
+//                        Text(
+//                            text = "💼 Pro",
+//                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+//                            fontSize = FontSize.SMALL,
+//                            fontWeight = FontWeight.Medium,
+//                            color = MaterialTheme.colorScheme.onSecondaryContainer
+//                        )
+//                    }
+//                }
             }
             
             Spacer(modifier = Modifier.height(20.dp))
@@ -135,12 +135,12 @@ fun UserInfoCard(
                         value = if (user.confirmed) "Confirmed" else "Unconfirmed"
                     )
                     
-                    // Account Type
-                    UserDetailRow(
-                        icon = if (user.professional) "💼" else "👤",
-                        label = "Account Type",
-                        value = if (user.professional) "Professional" else "Regular User"
-                    )
+//                    // Account Type
+//                    UserDetailRow(
+//                        icon = if (user.professional) "💼" else "👤",
+//                        label = "Account Type",
+//                        value = if (user.professional) "Professional" else "Regular User"
+//                    )
                     
                     // Blocked Status
                     if (user.blocked) {

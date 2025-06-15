@@ -26,6 +26,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    navigateToAdvertsListScreen: () -> Unit,
     navigateBack: () -> Unit
 ) {
     val viewModel = koinViewModel<ProfileViewModel>()
@@ -39,7 +40,8 @@ fun ProfileScreen(
     // State for detail screens
     var selectedAdvert by remember { mutableStateOf<com.goiaba.data.models.profile.Advert?>(null) }
     var selectedAddress by remember { mutableStateOf<com.goiaba.data.models.profile.Addresse?>(null) }
-    
+    var addressListScreen by remember { mutableStateOf(null) }
+
     // State for add address modal
     var showAddAddressModal by remember { mutableStateOf(false) }
 
@@ -59,6 +61,14 @@ fun ProfileScreen(
     }
 
     // Show detail screens when items are selected
+    selectedAdvert?.let { advert ->
+        AdvertDetailsScreen(
+            advert = advert,
+            navigateBack = { selectedAdvert = null }
+        )
+        return
+    }
+
     selectedAdvert?.let { advert ->
         AdvertDetailsScreen(
             advert = advert,
@@ -126,6 +136,13 @@ fun ProfileScreen(
                                 Icon(
                                     painter = painterResource(Resources.Icon.Search),
                                     contentDescription = "Refresh",
+                                    tint = IconPrimary
+                                )
+                            }
+                            IconButton(onClick = navigateToAdvertsListScreen) {
+                                Icon(
+                                    painter = painterResource(Resources.Icon.Dollar),
+                                    contentDescription = "Adverts Screen",
                                     tint = IconPrimary
                                 )
                             }
@@ -210,6 +227,7 @@ fun ProfileScreen(
                             }
                         },
                         onSuccess = { userResponse ->
+                            println("PPPPP $userResponse")
                             ProfileContent(
                                 user = userResponse,
                                 isUpdatingAddress = isUpdatingAddress,
@@ -225,6 +243,14 @@ fun ProfileScreen(
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                Button(
+                                    onClick = { viewModel.refreshProfile() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Text("🔄 Retry")
+                                }
                                 InfoCard(
                                     modifier = Modifier,
                                     image = Resources.Image.Cat,
@@ -234,21 +260,14 @@ fun ProfileScreen(
 
                                 Spacer(modifier = Modifier.height(24.dp))
 
-                                Button(
-                                    onClick = { viewModel.refreshProfile() },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    )
-                                ) {
-                                    Text("🔄 Retry")
-                                }
+
                             }
                         }
                     )
                 }
             }
         }
-        
+
         // Add Address Modal
         AddressEditModal(
             isVisible = showAddAddressModal,
@@ -284,7 +303,7 @@ private fun ProfileContent(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // User Information Card
+//         User Information Card
         item {
             UserInfoCard(user = user)
         }
@@ -304,7 +323,7 @@ private fun ProfileContent(
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
-                
+
                 Button(
                     onClick = onAddAddressClick,
                     enabled = !isUpdatingAddress,
@@ -394,24 +413,24 @@ private fun ProfileContent(
         }
 
         // Adverts Section
-        if (user.adverts.isNotEmpty()) {
-            item {
-                Text(
-                    text = "My Adverts (${user.adverts.size})",
-                    fontSize = FontSize.LARGE,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            items(user.adverts) { advert ->
-                AdvertCard(
-                    advert = advert,
-                    onAdvertClick = onAdvertClick
-                )
-            }
-        }
+//        if (user.adverts.isNotEmpty()) {
+//            item {
+//                Text(
+//                    text = "My Adverts (${user.adverts.size})",
+//                    fontSize = FontSize.LARGE,
+//                    fontWeight = FontWeight.Bold,
+//                    color = TextPrimary,
+//                    modifier = Modifier.padding(vertical = 8.dp)
+//                )
+//            }
+//
+//            items(user.adverts) { advert ->
+//                AdvertCard(
+//                    advert = advert,
+//                    onAdvertClick = onAdvertClick
+//                )
+//            }
+//        }
 
         // Empty states
         if (user.addresses.isEmpty() && user.adverts.isEmpty()) {
@@ -452,18 +471,18 @@ private fun ProfileContent(
         }
 
         // Refresh button at the bottom
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onRefresh,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Text("🔄 Refresh Profile")
-            }
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+//        item {
+//            Spacer(modifier = Modifier.height(16.dp))
+//            Button(
+//                onClick = onRefresh,
+//                modifier = Modifier.fillMaxWidth(),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = MaterialTheme.colorScheme.primary
+//                )
+//            ) {
+//                Text("🔄 Refresh Profile")
+//            }
+//            Spacer(modifier = Modifier.height(32.dp))
+//        }
     }
 }

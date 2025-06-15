@@ -96,12 +96,8 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                             // Step 2: Get current user data to update the addresses relation
                             val currentUser = _user.value.getSuccessDataOrNull()
                             if (currentUser != null) {
-                                val newAddressDocumentId = result.data.data.documentId
-                                val currentAddressIds = currentUser.addresses.map { it.documentId }
-                                val updatedAddressIds = currentAddressIds + newAddressDocumentId
-
                                 // Step 3: Update user with new address relation
-                                updateUserAddresses(currentUser.documentId, updatedAddressIds)
+                                addUserToAddress(currentUser.id, result.data.data.documentId)
                             } else {
                                 _isUpdatingAddress.value = false
                                 _updateMessage.value = "Address created but failed to link to user profile"
@@ -124,15 +120,9 @@ class ProfileViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private suspend fun updateUserAddresses(userDocumentId: String, addressIds: List<String>) {
+    private suspend fun addUserToAddress(userId: Int, addressId: String) {
         try {
-            val userUpdateRequest = UserUpdateRequest(
-                data = UserUpdateRequest.UserUpdateData(
-                    addresses = addressIds
-                )
-            )
-
-            profileRepository.updateUser(userDocumentId, userUpdateRequest).collect { result ->
+            profileRepository.addUserToAddress(userId, addressId).collect { result ->
                 when (result) {
                     is RequestState.Success -> {
                         _isUpdatingAddress.value = false
@@ -306,14 +296,6 @@ class ProfileViewModel : ViewModel(), KoinComponent {
         if (_isLoggedIn.value && _user.value is RequestState.Idle) {
             loadUserProfile()
         }
-    }
-
-    fun logout() {
-        TokenManager.clearToken()
-        ApiClient.clearAuthToken()
-        _isLoggedIn.value = false
-        _userEmail.value = null
-        _user.value = RequestState.Idle
     }
 
     fun clearUpdateMessage() {

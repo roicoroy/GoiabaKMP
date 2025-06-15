@@ -66,8 +66,8 @@ data class UsersMeResponse(
     val email: String,
     @SerialName("id")
     val id: Int,
-    @SerialName("professional")
-    val professional: Boolean,
+//    @SerialName("professional")
+//    val professional: Boolean,
     @SerialName("provider")
     val provider: String,
     @SerialName("publishedAt")
